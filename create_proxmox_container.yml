@@ -1,0 +1,43 @@
+---
+- hosts: proxmox_server
+  become: true
+  vars:
+    container_id: 105
+    container_name: ubuntu24-lxc
+    template_name: local:vztmpl/ubuntu-24.04-standard_24.04-1_amd64.tar.gz
+    ip_address: 10.80.28.105/24
+    gateway: 10.80.28.1
+    root_password: "securepassword"  # Change to a secure password
+    storage: local-lvm
+    cores: 2
+    memory: 2048  # Memory in MB
+    disk_size: 10G  # Disk size in GB
+  tasks:
+    - name: Create LXC container
+      community.general.proxmox_lxc:
+        node: "{{ inventory_hostname }}"  # Proxmox node name
+        vmid: "{{ container_id }}"
+        hostname: "{{ container_name }}"
+        password: "{{ root_password }}"
+        template: "{{ template_name }}"
+        storage: "{{ storage }}"
+        cores: "{{ cores }}"
+        memory: "{{ memory }}"
+        net: 
+          - name: eth0
+            ip: "{{ ip_address }}"
+            gw: "{{ gateway }}"
+        rootfs: "{{ storage }}:{{ disk_size }}"
+        state: present
+
+    - name: Start the LXC container
+      community.general.proxmox_lxc:
+        node: "{{ inventory_hostname }}"
+        vmid: "{{ container_id }}"
+        state: started
+
+    - name: Update and upgrade packages in the container
+      ansible.builtin.command:
+        cmd: |
+          lxc-attach -n {{ container_id }} -- bash -c "apt update && apt upgrade -y"
+      become: false
