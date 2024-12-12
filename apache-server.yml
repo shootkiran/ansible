@@ -5,7 +5,9 @@
     - name: Print OS information
       debug:
         msg: "Operating System: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
     - name: Install Apache web server
       ansible.builtin.package:
         name: apache2
