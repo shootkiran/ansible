@@ -1,14 +1,8 @@
 ---
 - name: Update web servers
-  hosts: webservers
-  remote_user: root
+  hosts: proxmox_servers
 
   tasks:
-  - name: Ensure apache is at the latest version
-    ansible.builtin.yum:
-      name: httpd
-      state: latest
-
   - name: Create new container automatically selecting the next available vmid.
     community.general.proxmox:
       node: 'uk-mc02'
