@@ -1,12 +1,21 @@
 ---
-- name: Create and control containers on proxmox using Ascender
-  hosts: proxmox_servers
+- name: Update web servers
+  hosts: webservers
+  remote_user: root
+
   tasks:
+  - name: Ensure apache is at the latest version
+    ansible.builtin.yum:
+      name: httpd
+      state: latest
+
   - name: Create new container automatically selecting the next available vmid.
-  community.general.proxmox:
-    api_user: 'root@pam'
-    api_password: '1q2w3e'
-    api_host: 'node1'
-    password: '123456'
-    hostname: 'example.org'
-    ostemplate: 'local:vztmpl/ubuntu-14.04-x86_64.tar.gz'
+    community.general.proxmox:
+      node: 'uk-mc02'
+      api_user: 'root@pam'
+      api_password: '1q2w3e'
+      api_host: 'node1'
+      password: '123456'
+      hostname: 'example.org'
+      ostemplate: 'local:ubuntu-24.04-standard_24.04-2_amd64.tar.zst'
+    
