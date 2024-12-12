@@ -5,7 +5,7 @@
   tasks:
   - name: Create new container automatically selecting the next available vmid.
     community.general.proxmox:
-      node: 'proxmox2-smartlink'
+      node: 'proxmox'
       api_user: 'root@pam'
       api_password: 'TechCare@@2'
       api_host: '157.15.58.24'
