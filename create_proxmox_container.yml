@@ -1,5 +1,5 @@
 ---
-- hosts: proxmox_server
+- hosts: proxmox_servers
   become: true
   vars:
     container_id: 105
