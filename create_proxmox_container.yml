@@ -1,23 +1,107 @@
-- name: Create new LXC container in Proxmox
-  hosts: all
-  tasks:
-    - name: 'Create LXC Container'
-      proxmox:
-          vmid: '300' # Specifying Container ID
-          api_user: root # Proxmox user
-          api_password: P@ssw0rd # Password in plaintext !!!
-          api_host: x.x.x.x # Proxmox hostname
-          password: 'P@ssw0rd' # Password in plaintext !!!
-          hostname: 'ansible-lxc' # Container hostname
-          node: 'proxmox01' # Name of Proxmox host
-          cores: '1'
-          cpus: '1'
-          cpuunits: '1000'
-          ostemplate: 'local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz' # Or use local:vztmpl/...
-          storage: 'local' # Or use 'local'
-          disk: '8'
-          memory: '512'
-          nameserver: '8.8.8.8'
-          netif: '{"net0":"name=eth0,ip=192.168.100.38/24,gw=192.168.100.1,ip6=dhcp,bridge=vmbr0"}'
-          state: 'present'
+---
+- name: Create and control containers on proxmox using Ascender
+  hosts: proxmox_servers
+  gather_facts: false
+  vars:
+    # Configure the api connection info for proxmox host
+    proxmox_auth: &proxmox_auth
+      api_host: "{{ api_host }}"
+      #api_user: "{{ api_user }}"
+      api_user: root@pam # username format example
+      # Use standard password
+      api_password: "{{ api_password }}"
+      # Use api token and secret - example format
+      # api_token_id: gregisa5.0
+      # api_token_secret: 72a72987-ff68-44f1-9fee-c09adaaecf4d
 
+    # Configure template to clone for new container
+    clone_template: 'local:ubuntu-24.04-standard_24.04-2_amd64.tar.zst'
+
+    # # Configure location on Host to store new vm
+    # storage_location: local-lvm
+
+    # # Linked Clone needs format=unspecified and full=false
+    # # Format of new VM
+    # vm_format: qcow2
+
+    # Default name to use for the VM
+    con_hostname: test-rocky9-container
+
+    # Container storage volume
+    con_storage: local-lvm
+
+    # How many cores
+    # vm_cores: 2
+
+    # How many vcpus:
+    # vm_vcpus: 2
+    
+    # Options for specifying network interface type
+    #vm_net0: 'virtio,bridge=vmbr0'
+
+    #vm_ipconfig0: 'ip=192.168.1.1/24,gw=192.168.1.1'
+
+    # Switches for playbook control
+    # con_action: provision
+    # con_action: start
+    # con_action: stop
+    # con_action: delete
+
+# https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_kvm_module.html#examples
+# https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_vm_info_module.html#examples
+# https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_module.html#examples
+
+  tasks:
+  - name: Block for creating a container
+    when: con_action == "provision"
+    block:
+    - name: Create a container based on a template
+      community.general.proxmox:
+        <<: *proxmox_auth
+        hostname: "{{ api_host }}"
+        node: proxmox
+        ostemplate: "{{ clone_template }}"
+        storage: "{{ con_storage }}"
+      register: con_provision_info
+
+    - name: Pause after provision to give the API a chance to catch up
+      ansible.builtin.pause:
+        seconds: 10
+
+  - name: Start container
+    when: (con_action == "provision" and con_provision_info.changed) or con_action == "start"
+    community.general.proxmox:
+      <<: *proxmox_auth
+      hostname: "{{ con_hostname }}"
+      node: proxmox
+      state: started
+
+  - name: Stop container
+    when: con_action == "stop"
+    community.general.proxmox:
+      <<: *proxmox_auth
+      hostname: "{{ con_hostname }}"
+      node: proxmox
+      state: stopped
+
+  - name: Delete container block
+    when: con_action == "delete"
+    block:
+    - name: Stop container with force
+      community.general.proxmox:
+        <<: *proxmox_auth
+        hostname: "{{ con_hostname }}"
+        node: proxmox
+        state: stopped
+        force: true
+
+    - name: Pause to allow shutdown to complete
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Delete container
+      community.general.proxmox:
+        <<: *proxmox_auth
+        hostname: "{{ con_hostname }}"
+        node: proxmox
+        state: absent
