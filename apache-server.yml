@@ -10,5 +10,5 @@
         update_cache: yes
     - name: Install Apache web server
       ansible.builtin.package:
-        name: apache2
-        state: present
+        name: httpd
+        state: latest
