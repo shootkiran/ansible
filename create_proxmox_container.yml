@@ -7,9 +7,9 @@
     community.general.proxmox:
       node: 'uk-mc02'
       api_user: 'root@pam'
-      api_password: '1q2w3e'
-      api_host: 'node1'
-      password: '123456'
+      api_password: 'TechCare@@2'
+      api_host: '157.15.58.24'
+      password: 'TechCare@@2'
       hostname: 'example.org'
       ostemplate: 'local:ubuntu-24.04-standard_24.04-2_amd64.tar.zst'
     
