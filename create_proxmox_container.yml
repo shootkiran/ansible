@@ -13,31 +13,17 @@
     memory: 2048  # Memory in MB
     disk_size: 10G  # Disk size in GB
   tasks:
-    - name: Create LXC container
-      community.general.proxmox_lxc:
-        node: "{{ inventory_hostname }}"  # Proxmox node name
-        vmid: "{{ container_id }}"
-        hostname: "{{ container_name }}"
-        password: "{{ root_password }}"
-        template: "{{ template_name }}"
-        storage: "{{ storage }}"
-        cores: "{{ cores }}"
-        memory: "{{ memory }}"
-        net: 
-          - name: eth0
-            ip: "{{ ip_address }}"
-            gw: "{{ gateway }}"
-        rootfs: "{{ storage }}:{{ disk_size }}"
-        state: present
+  - name: Create LXC container
+    community.general.proxmox_lxc:
+      node: pve
+      vmid: 101
+      template: "local:vztmpl/ubuntu-24.04-standard_24.04-1_amd64.tar.gz"
+      state: present
+      ostype: ubuntu
+      memory: 512
+      net:
+        - name: eth0
+          bridge: vmbr0
+          ip: 10.80.28.105/24
+      gateway: 10.80.28.1
 
-    - name: Start the LXC container
-      community.general.proxmox_lxc:
-        node: "{{ inventory_hostname }}"
-        vmid: "{{ container_id }}"
-        state: started
-
-    - name: Update and upgrade packages in the container
-      ansible.builtin.command:
-        cmd: |
-          lxc-attach -n {{ container_id }} -- bash -c "apt update && apt upgrade -y"
-      become: false
