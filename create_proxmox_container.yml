@@ -3,13 +3,29 @@
   hosts: proxmox_servers
 
   tasks:
+  - name: Install Python3-pip
+    ansible.builtin.apt:
+      name: python3-pip
+      state: present
+  - name: Install setuptools modules via pip
+    ansible.builtin.pip:
+      name: setuptools
+      state: present
+  - name: Install requests module via pip
+    ansible.builtin.pip:
+      name: requests
+      state: present
+  - name: install proxmoxer module via pip
+    ansible.builtin.pip:
+      name: proxmoxer
+      state: present
   - name: Create new container automatically selecting the next available vmid.
     community.general.proxmox:
-      api_user: 'root@pam'
-      api_password: 'TechCare@@2'
-      api_host: '157.15.58.24'
-      password: 'TechCare@@2'
-      hostname: 'server1.merosoftnepal.com'
       node: 'proxmox2-smartlink'
+      api_user: 'root@pam'
+      api_password: "{{ proxmox_pass}}"
+      api_host: 157.15.58.25
+      password: "{{ proxmox_pass }}"
+      hostname: "{{ container_hostname }}"
       ostemplate: 'local:ubuntu-24.04-standard_24.04-2_amd64.tar.zst'
     
