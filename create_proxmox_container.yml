@@ -44,7 +44,9 @@
       state: started
   - name: Enable SSH on port 8722 and allow root login in container
     ansible.builtin.command: |
-      lxc-attach -n "{{container_id}}" -- bash -c "
+      lxc-attach -n "{{container_id}}" -- bash -c " &&
+      systemctl disable ssh.socket &&
+      systemctl stop ssh.socket &&
       sed -i 's/^#\\?Port .*/Port 8722/' /etc/ssh/sshd_config && 
       sed -i 's/^#\\?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
       "
@@ -53,4 +55,12 @@
   - name: Restart SSH service in container
     ansible.builtin.command: |
       lxc-attach -n "{{container_id}}" -- service ssh restart
+    become: true
+
+  - name: Install docker on container
+    ansible.builtin.command: |
+      lxc-attach -n "{{container_id}}" -- bash -c " &&
+      wget https://get.docker.com &&
+      bash index.html
+      "
     become: true
