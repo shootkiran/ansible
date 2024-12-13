@@ -32,7 +32,9 @@
       disk: 'local-lvm:20'
       netif:
         net0: "name=eth0,gw=10.80.28.1,ip=10.80.28.105/24,bridge=vmbr0"
-
+      timezone: host
+      features:
+        - nesting=1
   - name: Start container
     community.general.proxmox:
       vmid: "{{container_id}}"
@@ -40,3 +42,15 @@
       api_password: "{{ proxmox_pass}}"
       api_host: 157.15.58.25
       state: started
+  - name: Enable SSH on port 8722 and allow root login in container
+    ansible.builtin.command: |
+      lxc-attach -n "{{container_id}}" -- bash -c "
+      sed -i 's/^#\\?Port .*/Port 8722/' /etc/ssh/sshd_config && 
+      sed -i 's/^#\\?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
+      "
+    become: true
+
+  - name: Restart SSH service in container
+    ansible.builtin.command: |
+      lxc-attach -n "{{container_id}}" -- service ssh restart
+    become: true
