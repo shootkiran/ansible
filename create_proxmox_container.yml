@@ -29,4 +29,7 @@
       hostname: "{{ container_hostname }}"
       ostemplate: local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst
       disk: 'local-lvm:20'
+      netif:
+        net0: "name=eth0,gw=10.80.28.1,ip=10.80.28.105/24,bridge=vmbr0"
+
     
