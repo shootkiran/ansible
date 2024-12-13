@@ -54,7 +54,7 @@
 
   - name: Install docker on container
     ansible.builtin.command: |
-      lxc-attach -n "{{container_id}}" -- bash -c " &&
+      lxc-attach -n "{{container_id}}" -- bash -c "
       wget https://get.docker.com &&
       bash index.html
       "
