@@ -27,5 +27,5 @@
       api_host: 157.15.58.25
       password: "{{ proxmox_pass }}"
       hostname: "{{ container_hostname }}"
-      ostemplate: 'local:ubuntu-24.04-standard_24.04-2_amd64.tar.zst'
+      ostemplate: 'local:debian-12-turnkey-ansible_18.0-1_amd64.tar.gz'
     
